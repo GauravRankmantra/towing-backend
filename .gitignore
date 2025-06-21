@@ -1,1 +1,111 @@
-node_modules
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-store/
+*.tgz
+.env.local
+.env
+.env.development.local
+.env.test.local
+.env.production.local
+.env.staging.local
+
+# Python
+__pycache__/
+*.pyc
+*.pyd
+*.so
+.venv/
+env/
+venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.Python
+build/
+develop-eggs/
+dist/
+eggs/
+.egg-info/
+*.egg-info
+.coverage
+.tox/
+.mypy_cache/
+.pytest_cache/
+htmlcov/
+.nox/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# Runtime files
+*.pid
+*.seed
+*.netrc
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Icon?
+
+# Editor/IDE specific files
+.idea/
+.vscode/
+.history/
+*.iml
+*.iws
+*.ipr
+*.swp
+*.swo
+*~
+.prettierrc.json
+.eslintignore
+.eslintrc.json
+
+# Database files
+*.sqlite3
+*.db
+*.db-journal
+*.sql
+*.pgpass
+*.sqllite
+*.mdb
+
+# Dependency directories (common across languages)
+vendor/
+
+# Compiled/Build artifacts
+dist/
+build/
+out/
+target/
+
+# Uploaded files or user-generated content (if applicable)
+/uploads/
+/public/uploads/
+
+# Specific to any CI/CD or deployment tools
+.circleci/
+.github/
+.gitlab-ci.yml
+Jenkinsfile
+
+# Test/Coverage reports
+coverage/
+.nyc_output/
+junit.xml
+
+# Configuration files that might be sensitive or local
+config.js.example
+settings.py.example
+*.local.conf
+*.conf.example

@@ -9,8 +9,8 @@ const {
   destroyFile,
   getPublicIdFromCloudinaryUrl,
 } = require("../services/cloudinary.js");
-const fs = require('fs'); 
-const util = require('util');
+const fs = require("fs");
+const util = require("util");
 
 const unlinkFile = util.promisify(fs.unlink);
 // CREATE ZipCode Entry
@@ -184,7 +184,7 @@ exports.addCompany = asyncHandler(async (req, res, next) => {
   const data = JSON.parse(req.body.companyDetails || "{}");
 
   if (!zipCodeId || !data.name || !data.phone) {
-        const tempFilePaths = req.files ? req.files.map(file => file.path) : [];
+    const tempFilePaths = req.files ? req.files.map((file) => file.path) : [];
     // Clean up temporary files even if validation fails
     for (const filePath of tempFilePaths) {
       try {
@@ -199,11 +199,11 @@ exports.addCompany = asyncHandler(async (req, res, next) => {
   }
 
   const images = [];
-  const tempFilePaths = []; 
-  console.log(" filesss ", req.files);
+  const tempFilePaths = [];
+
   if (req.files && req.files.length) {
     for (const file of req.files) {
-       tempFilePaths.push(file.path);
+      tempFilePaths.push(file.path);
       const result = await uploadFile(file.path);
       if (result?.secure_url) images.push(result.secure_url);
     }
@@ -263,7 +263,7 @@ exports.updateCompany = asyncHandler(async (req, res, next) => {
 // DELETE company
 exports.deleteCompany = asyncHandler(async (req, res, next) => {
   const { companyId } = req.params;
-  const { zipCodeId } = req.body;
+
 
   const company = await Company.findById(companyId);
   if (!company) return next(new ErrorHandler("Company not found", 404));
@@ -274,9 +274,10 @@ exports.deleteCompany = asyncHandler(async (req, res, next) => {
   }
 
   await Company.findByIdAndDelete(companyId);
-  await ZipCodeEntry.findByIdAndUpdate(zipCodeId, {
-    $pull: { companies: companyId },
-  });
+  await ZipCodeEntry.updateMany(
+    { companies: companyId },
+    { $pull: { companies: companyId } }
+  );
 
   sendResponse(res, {
     message: "Company deleted successfully",

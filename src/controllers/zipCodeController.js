@@ -9,13 +9,13 @@ const {
   destroyFile,
   getPublicIdFromCloudinaryUrl,
 } = require("../services/cloudinary.js");
+const fs = require('fs'); 
+const util = require('util');
 
+const unlinkFile = util.promisify(fs.unlink);
 // CREATE ZipCode Entry
 exports.createZipCodeEntry = asyncHandler(async (req, res, next) => {
-
-    
   const { zipCode, cityName, mapLink } = req.body;
-
 
   if (!zipCode || !cityName) {
     return next(new ErrorHandler("Zip code and city name are required", 400));
@@ -61,7 +61,6 @@ exports.getZipCodeEntry = asyncHandler(async (req, res, next) => {
   });
 });
 
-
 exports.deleteZipCodeEntry = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
 
@@ -84,7 +83,6 @@ exports.deleteZipCodeEntry = asyncHandler(async (req, res, next) => {
   });
 });
 
-
 // GET All ZipCode Entries with populated companies
 exports.getAllZipCodes = asyncHandler(async (req, res, next) => {
   const entries = await ZipCodeEntry.find().populate("companies");
@@ -92,8 +90,6 @@ exports.getAllZipCodes = asyncHandler(async (req, res, next) => {
     data: entries,
   });
 });
-
-
 
 // 1. GET: Search by Zip Code (get all zip codes and their related companies)
 exports.searchZipCode = asyncHandler(async (req, res, next) => {
@@ -112,7 +108,8 @@ exports.searchZipCode = asyncHandler(async (req, res, next) => {
 // 2. GET: Search by Company Name (get company name and its associated zip codes)
 exports.searchCompanyByName = asyncHandler(async (req, res, next) => {
   const { query } = req.query; // Expecting 'query' to be the company name
-  if (!query) return next(new ErrorHandler("Company name query is required", 400));
+  if (!query)
+    return next(new ErrorHandler("Company name query is required", 400));
 
   // 1. Find companies matching the query from the Company model
   // We don't need to select fields here if we want to include everything later
@@ -180,25 +177,33 @@ exports.searchByCityName = asyncHandler(async (req, res, next) => {
   });
 });
 
-
-
-
-
 // ADD company to existing zipCode entry
 exports.addCompany = asyncHandler(async (req, res, next) => {
   const { zipCodeId } = req.body;
 
-
-  const data = JSON.parse(req.body.companyDetails || '{}');
+  const data = JSON.parse(req.body.companyDetails || "{}");
 
   if (!zipCodeId || !data.name || !data.phone) {
+        const tempFilePaths = req.files ? req.files.map(file => file.path) : [];
+    // Clean up temporary files even if validation fails
+    for (const filePath of tempFilePaths) {
+      try {
+        await unlinkFile(filePath);
+        console.log(`Deleted temp file: ${filePath}`);
+      } catch (unlinkError) {
+        console.error(`Error deleting temp file ${filePath}:`, unlinkError);
+      }
+    }
+
     return next(new ErrorHandler("Missing required fields", 400));
   }
 
   const images = [];
-  console.log(" filesss ",req.files)
+  const tempFilePaths = []; 
+  console.log(" filesss ", req.files);
   if (req.files && req.files.length) {
     for (const file of req.files) {
+       tempFilePaths.push(file.path);
       const result = await uploadFile(file.path);
       if (result?.secure_url) images.push(result.secure_url);
     }
@@ -210,6 +215,15 @@ exports.addCompany = asyncHandler(async (req, res, next) => {
 
   zip.companies.push(newCompany._id);
   await zip.save();
+  for (const filePath of tempFilePaths) {
+    try {
+      await unlinkFile(filePath);
+      console.log(`Deleted temp file: ${filePath}`);
+    } catch (unlinkError) {
+      // Log the error but don't prevent the response from being sent
+      console.error(`Error deleting temp file ${filePath}:`, unlinkError);
+    }
+  }
 
   sendResponse(res, {
     statusCode: 201,
@@ -221,7 +235,7 @@ exports.addCompany = asyncHandler(async (req, res, next) => {
 // UPDATE company
 exports.updateCompany = asyncHandler(async (req, res, next) => {
   const { companyId } = req.params;
-  const data = JSON.parse(req.body.companyDetails || '{}');
+  const data = JSON.parse(req.body.companyDetails || "{}");
 
   const existing = await Company.findById(companyId);
   if (!existing) return next(new ErrorHandler("Company not found", 404));
@@ -266,5 +280,23 @@ exports.deleteCompany = asyncHandler(async (req, res, next) => {
 
   sendResponse(res, {
     message: "Company deleted successfully",
+  });
+});
+
+exports.totalZipCodes = asyncHandler(async (req, res, next) => {
+  const count = await ZipCodeEntry.countDocuments({});
+  res.status(200).json({
+    success: true,
+    data: count,
+    message: "Total number of zip code entries fetched successfully",
+  });
+});
+
+exports.totalTowingCompanies = asyncHandler(async (req, res, next) => {
+  const count = await Company.countDocuments({});
+  res.status(200).json({
+    success: true,
+    data: count,
+    message: "Total number of towing companies fetched successfully",
   });
 });

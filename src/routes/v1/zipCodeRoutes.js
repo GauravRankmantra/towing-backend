@@ -14,10 +14,14 @@ const {
   deleteCompany,
   searchZipCode,
   searchByCityName,
-  searchCompanyByName
+  searchCompanyByName,
+  totalZipCodes,
+  totalTowingCompanies
 } = require("../../controllers/zipCodeController.js");
 
 
+router.get("/totalZipCodes",totalZipCodes)
+router.get("/totalTowingCompanies",totalTowingCompanies)
 
 // Create a new Zip Code Entry
 router.post("/addZipCode", createZipCodeEntry);
@@ -51,6 +55,8 @@ router.delete("/deletecompany/:companyId", deleteCompany);
 
 
 // Search by zip code or city name
+
+// router.get("/totalCitiesServed")
 router.get("/search/zip", searchZipCode);
 router.get("/search/city", searchByCityName);
 router.get("/search/company", searchCompanyByName);
